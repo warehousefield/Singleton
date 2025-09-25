@@ -1,0 +1,38 @@
+using Autodesk.Revit.DB;
+using System.Collections.Generic;
+using System.Linq;
+
+/// <summary>
+/// Singleton-класс для поиска и управления семействами в проекте Revit.
+/// Гарантирует, что будет создан только один экземпляр.
+/// </summary>
+public sealed class ProjectFamilyFinder
+{
+    // Lazy<T> обеспечивает потокобезопасную инициализацию
+    private static readonly Lazy<ProjectFamilyFinder> _instance = 
+        new Lazy<ProjectFamilyFinder>(() => new ProjectFamilyFinder());
+
+    // Приватный конструктор, чтобы запретить создание экземпляров извне
+    private ProjectFamilyFinder() { }
+
+    /// <summary>
+    /// Глобальная точка доступа к единственному экземпляру класса.
+    /// </summary>
+    public static ProjectFamilyFinder Instance => _instance.Value;
+
+    /// <summary>
+    /// Находит все загруженные семейства в текущем проекте.
+    /// </summary>
+    /// <param name="doc">Объект документа (проекта) Revit.</param>
+    /// <returns>Список всех объектов Family.</returns>
+    public List<Family> GetAllFamilies(Document doc)
+    {
+        // Используем FilteredElementCollector для эффективного поиска.
+        // Фильтр по классу Family.
+        var collector = new FilteredElementCollector(doc)
+            .OfClass(typeof(Family));
+
+        // Возвращаем результат в виде списка.
+        return collector.Cast<Family>().ToList();
+    }
+}
