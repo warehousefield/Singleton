@@ -1,0 +1,39 @@
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
+using Autodesk.Revit.Attributes;
+using System.Linq;
+
+[Transaction(TransactionMode.Manual)]
+public class FamilyFinderCommand : IExternalCommand
+{
+    public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+    {
+        // Получаем текущий документ (проект).
+        Document doc = commandData.Application.ActiveUIDocument.Document;
+
+        // Получаем единственный экземпляр нашего Singleton-класса.
+        // Заметьте, что мы не создаем новый объект через 'new'.
+        ProjectFamilyFinder familyFinder = ProjectFamilyFinder.Instance;
+
+        // Используем метод нашего Singleton для получения всех семейств.
+        List<Family> allFamilies = familyFinder.GetAllFamilies(doc);
+
+        // Формируем сообщение для отображения.
+        string resultMessage = $"Найдено семейств: {allFamilies.Count}\n\n";
+
+        if (allFamilies.Any())
+        {
+            resultMessage += "Список семейств:\n";
+            resultMessage += string.Join("\n", allFamilies.Select(f => f.Name));
+        }
+        else
+        {
+            resultMessage += "В проекте нет загруженных семейств.";
+        }
+        
+        // Выводим результат в окно сообщений Revit.
+        TaskDialog.Show("Family Finder", resultMessage);
+
+        return Result.Succeeded;
+    }
+}
